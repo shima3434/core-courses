@@ -1,0 +1,68 @@
+USE mydb;
+
+/* Query 1 */
+DROP VIEW IF EXISTS Total_LEP_Students;
+CREATE VIEW Total_LEP_Students AS
+
+SELECT SUM(Number_of_Undergraduate_Students) As Total_LEP_Students
+FROM Popular_Majors
+WHERE Is_it_an_LEP = 'Yes';
+
+
+SELECT * FROM Total_LEP_Students;
+
+/* Query 2 */
+DROP VIEW IF EXISTS Beh_Soc_Gen_Eds;
+CREATE VIEW Beh_Soc_Gen_Eds AS
+SELECT College_Name, Course_Code As "Course Code", Course_Name As "Course Name"
+FROM Spring_Core_Courses scc 
+	JOIN Major_to_Core_Course mcc ON mcc.Course_ID = scc.Course_ID
+    JOIN Popular_Majors pm ON pm.Major_ID = mcc.Major_ID
+    JOIN College c ON c.College_ID = pm.College_ID
+WHERE C.College_Id = "4" and scc.Satisfies_Gen_ED = "Yes";
+
+
+SELECT * FROM Beh_Soc_Gen_Eds;
+
+/* Query 3 */
+DROP VIEW IF EXISTS Info_Sci_Courses_Professors;
+CREATE VIEW Info_Sci_Courses_Professors AS
+SELECT CONCAT(Professor_Last_Name, ", ", Professor_First_Name) as "Professor Name", Course_Name, Course_Code
+FROM Professors p JOIN Professor_to_Course pc 
+ON p.Professor_ID = pc.Professor_ID
+JOIN Spring_Core_Courses scc ON scc.Course_ID = pc.Course_ID
+JOIN Major_to_Core_Course mcc ON mcc.Course_ID = scc.Course_ID
+JOIN Popular_Majors pm ON pm.Major_ID = mcc.Major_ID
+WHERE pm.Major_ID IN
+	(SELECT Major_ID 
+    FROM Popular_Majors 
+    WHERE Major_Name = 'Information Science')
+ORDER BY 'Professor Name';
+
+SELECT * FROM Info_Sci_Courses_Professors;
+
+/* Query 4 */
+DROP VIEW IF EXISTS Credit_Greater_Than_Three;
+CREATE VIEW Credit_Greater_Than_Three AS
+SELECT Major_Name as "Major Name", (COUNT(Course_Name)) AS "Number of Courses Offered With Credits > 3" 
+FROM Spring_Core_Courses scc JOIN Major_to_Core_Course mcc
+ON scc.Course_Id = mcc.Course_ID JOIN Popular_Majors pm
+ON pm.Major_ID = mcc.Major_ID
+WHERE scc.Course_ID IN
+	(SELECT Course_ID
+	FROM Spring_Core_Courses
+	WHERE Credit_Number > 3)
+GROUP BY Major_Name
+ORDER BY Major_Name;
+
+SELECT * FROM Credit_Greater_Than_Three;
+
+/* Query 5 */
+DROP VIEW IF EXISTS Major_Specializations;
+CREATE VIEW Major_Specializations AS
+SELECT Major_Name AS "Major Name", Name_of_Specialization AS "Name of Speciailization"
+FROM Specializations 
+	JOIN Popular_Majors USING (Major_ID)
+ORDER BY Major_Name;
+
+SELECT * FROM Major_Specializations;
